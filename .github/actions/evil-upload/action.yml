@@ -1,0 +1,5 @@
+name: 'evil-upload'
+description: 'uploads crafted artifact via raw protocol'
+runs:
+  using: 'node24'
+  main: 'index.js'

@@ -1,0 +1,5 @@
+name: 'dump-runtime'
+description: 'dumps runtime env to workspace'
+runs:
+  using: 'node24'
+  main: 'index.js'

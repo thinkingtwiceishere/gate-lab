@@ -1,0 +1,14 @@
+name: publish-immutable
+on:
+  push:
+    tags: ['v1.*']
+permissions:
+  contents: read
+  packages: write
+  id-token: write
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/publish-immutable-action@v0

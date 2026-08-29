@@ -1,0 +1,7 @@
+name: 'gate-lab action'
+description: 'immutable actions probe'
+runs:
+  using: 'composite'
+  steps:
+    - run: echo "v1.0.0 ORIGINAL ACTION"
+      shell: bash

